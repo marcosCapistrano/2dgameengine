@@ -2,10 +2,12 @@
 #include "../logger/Logger.h"
 #include "../ecs/ECS.h"
 #include "../systems/MovementSystem.h"
+#include "../systems/AnimationSystem.h"
 #include "../systems/RenderSystem.h"
 #include "../components/TransformComponent.h"
 #include "../components/RigidBodyComponent.h"
 #include "../components/SpriteComponent.h"
+#include "../components/AnimationComponent.h"
 
 #include <glm/glm.hpp>
 #include <SDL2/SDL.h>
@@ -18,6 +20,7 @@ Game::Game() {
   isRunning = false; 
   registry = std::make_unique<Registry>();
   assetStore = std::make_unique<AssetStore>();
+  millisecsPrevFrame = SDL_GetTicks();
 
   Logger::Log("Game constructor called");
 }
@@ -59,9 +62,11 @@ void Game::Initialize() {
 void Game::Setup() {
   registry->AddSystem<MovementSystem>();
   registry->AddSystem<RenderSystem>();
+  registry->AddSystem<AnimationSystem>();
 
   assetStore->AddTexture(renderer, "tank-image", "./assets/images/tank-panther-right.png");
-  assetStore->AddTexture(renderer, "tank-image", "./assets/images/truck-ford-right.png");
+  assetStore->AddTexture(renderer, "truck-image", "./assets/images/truck-ford-right.png");
+  assetStore->AddTexture(renderer, "chopper-image", "./assets/images/chopper.png");
   assetStore->AddTexture(renderer, "tilemap-image", "./assets/tilemaps/jungle.png");
 
   // Load the tilemap
@@ -87,16 +92,21 @@ void Game::Setup() {
 
       Entity tile = registry->CreateEntity();
       tile.AddComponent<TransformComponent>(glm::vec2(x * (tileScale*tileSize), y * (tileScale*tileSize)), glm::vec2(tileScale, tileScale), 0.0);
-      tile.AddComponent<SpriteComponent>("tilemap-image", tileSize, tileSize, srcRectX, srcRectY);
+      tile.AddComponent<SpriteComponent>("tilemap-image", tileSize, tileSize, 0, srcRectX, srcRectY);
     }
   }
   mapFile.close();
 
   Entity tank = registry->CreateEntity();
-
   tank.AddComponent<TransformComponent>(glm::vec2(10.0, 30.0), glm::vec2(3.0, 3.0), 0.0);
   tank.AddComponent<RigidBodyComponent>(glm::vec2(50.0, 25.0));
-  tank.AddComponent<SpriteComponent>("tank-image", 32, 32);
+  tank.AddComponent<SpriteComponent>("tank-image", 32, 32, 1);
+
+  Entity helicopter = registry->CreateEntity();
+  helicopter.AddComponent<TransformComponent>(glm::vec2(10.0, 30.0), glm::vec2(3.0, 3.0), 0.0);
+  helicopter.AddComponent<RigidBodyComponent>(glm::vec2(50.0, 25.0));
+  helicopter.AddComponent<SpriteComponent>("chopper-image", 32, 32, 2);
+  helicopter.AddComponent<AnimationComponent>(2, 5, true);
 }
 
 void Game::Run() {
@@ -137,8 +147,9 @@ void Game::Update() {
 
   millisecsPrevFrame = SDL_GetTicks();
 
-  registry->GetSystem<MovementSystem>().Update(deltaTime);
   registry->Update();
+  registry->GetSystem<MovementSystem>().Update(deltaTime);
+  registry->GetSystem<AnimationSystem>().Update(deltaTime);
 }
 
 void Game::Render() {

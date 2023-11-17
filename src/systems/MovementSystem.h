@@ -4,6 +4,7 @@
 #include "../ecs/ECS.h"
 #include "../components/TransformComponent.h"
 #include "../components/RigidBodyComponent.h"
+#include "../logger/Logger.h"
 
 class MovementSystem : public System {
     public:
@@ -18,6 +19,7 @@ class MovementSystem : public System {
 
                 transform.position.x += rigidBody.velocity.x * deltaTime;
                 transform.position.y += rigidBody.velocity.y * deltaTime;
+
             }
         }
 };
