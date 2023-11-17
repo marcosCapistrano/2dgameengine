@@ -7,6 +7,7 @@
 #include <typeindex>
 #include <unordered_map>
 #include <vector>
+#include <deque>
 
 #include "../logger/Logger.h"
 
@@ -35,6 +36,8 @@ class Entity {
 
  public:
   Entity(int id) : id(id){};
+  Entity(const Entity& entity) = default;
+  void Kill();
   int GetId() const;
 
   Entity& operator=(const Entity& other) = default;
@@ -121,6 +124,9 @@ class Registry {
   std::set<Entity> entitiesToBeAdded;
   std::set<Entity> entitiesToBeKilled;
 
+  // List of free entity ids that were previously removed
+  std::deque<int> freeIds;
+
  public:
   Registry() = default;
 
@@ -128,7 +134,7 @@ class Registry {
 
   // Entity management
   Entity CreateEntity();
-  // void AddEntityToSystem(Entity entity);
+  void KillEntity(Entity entity);
 
   // Component management
   template <typename TComponent, typename... TArgs>
@@ -150,6 +156,7 @@ class Registry {
   TSystem& GetSystem() const;
 
   void AddEntityToSystems(Entity entity);
+  void RemoveEntityFromSystems(Entity entity);
 };
 
 template <typename TSystem, typename... TArgs>

@@ -3,9 +3,11 @@
 #include "../ecs/ECS.h"
 #include "../systems/MovementSystem.h"
 #include "../systems/AnimationSystem.h"
+#include "../systems/CollisionSystem.h"
 #include "../systems/RenderSystem.h"
 #include "../components/TransformComponent.h"
 #include "../components/RigidBodyComponent.h"
+#include "../components/BoxColliderComponent.h"
 #include "../components/SpriteComponent.h"
 #include "../components/AnimationComponent.h"
 
@@ -63,6 +65,7 @@ void Game::Setup() {
   registry->AddSystem<MovementSystem>();
   registry->AddSystem<RenderSystem>();
   registry->AddSystem<AnimationSystem>();
+  registry->AddSystem<CollisionSystem>();
 
   assetStore->AddTexture(renderer, "tank-image", "./assets/images/tank-panther-right.png");
   assetStore->AddTexture(renderer, "truck-image", "./assets/images/truck-ford-right.png");
@@ -100,13 +103,16 @@ void Game::Setup() {
   Entity tank = registry->CreateEntity();
   tank.AddComponent<TransformComponent>(glm::vec2(10.0, 30.0), glm::vec2(3.0, 3.0), 0.0);
   tank.AddComponent<RigidBodyComponent>(glm::vec2(50.0, 25.0));
+  tank.AddComponent<BoxColliderComponent>(32, 32);
   tank.AddComponent<SpriteComponent>("tank-image", 32, 32, 1);
 
   Entity helicopter = registry->CreateEntity();
   helicopter.AddComponent<TransformComponent>(glm::vec2(10.0, 30.0), glm::vec2(3.0, 3.0), 0.0);
-  helicopter.AddComponent<RigidBodyComponent>(glm::vec2(50.0, 25.0));
+  helicopter.AddComponent<RigidBodyComponent>(glm::vec2(75.0, 25.0));
+  helicopter.AddComponent<BoxColliderComponent>(32, 32);
   helicopter.AddComponent<SpriteComponent>("chopper-image", 32, 32, 2);
   helicopter.AddComponent<AnimationComponent>(2, 5, true);
+
 }
 
 void Game::Run() {
@@ -150,6 +156,7 @@ void Game::Update() {
   registry->Update();
   registry->GetSystem<MovementSystem>().Update(deltaTime);
   registry->GetSystem<AnimationSystem>().Update(deltaTime);
+  registry->GetSystem<CollisionSystem>().Update(deltaTime);
 }
 
 void Game::Render() {
